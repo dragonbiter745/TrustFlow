@@ -62,7 +62,7 @@ function EscrowDetail() {
     setVerifying(true);
     setVerifyError("");
     try {
-      const result = await verifyGitHub({ commitHash, prLink, repoLink });
+      const result = await verifyGitHub({ commitHash, prLink, repoLink, milestoneDescription: escrow.milestoneDescription });
       setVerification(result.verification);
     } catch (e: any) {
       setVerifyError(e.response?.data?.error || "Verification failed");
@@ -281,18 +281,84 @@ function EscrowDetail() {
                 {verifyError && <p className="text-sm text-red-600">{verifyError}</p>}
 
                 {verification && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm">
-                    <div className="font-semibold text-green-800 mb-2 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" /> GitHub Verified
+                  <div className="space-y-4">
+                    {/* Milestone Verdict */}
+                    <div className={`rounded-xl p-4 border ${
+                      verification.milestoneVerdict === "PASS" ? "bg-green-50 border-green-200" :
+                      verification.milestoneVerdict === "FAIL" ? "bg-red-50 border-red-200" :
+                      "bg-amber-50 border-amber-200"
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className={`font-bold text-sm flex items-center gap-2 ${
+                          verification.milestoneVerdict === "PASS" ? "text-green-700" :
+                          verification.milestoneVerdict === "FAIL" ? "text-red-700" :
+                          "text-amber-700"
+                        }`}>
+                          <CheckCircle className="w-4 h-4" />
+                          Milestone Verdict: {verification.milestoneVerdict || "PARTIAL"}
+                        </div>
+                        <div className={`text-2xl font-bold ${
+                          verification.milestoneVerdict === "PASS" ? "text-green-600" :
+                          verification.milestoneVerdict === "FAIL" ? "text-red-600" :
+                          "text-amber-600"
+                        }`}>{verification.milestoneScore || 50}/100</div>
+                      </div>
+                      {verification.milestoneReasoning && (
+                        <p className="text-xs text-gray-600 italic">{verification.milestoneReasoning}</p>
+                      )}
                     </div>
-                    {verification.commitVerified && <p className="text-green-700">✓ Commit verified: {verification.commitData?.message}</p>}
-                    {verification.prVerified && <p className="text-green-700">✓ PR verified: {verification.prData?.title}</p>}
+
+                    {/* AI Summary */}
                     {verification.aiSummary && (
-                      <div className="mt-3 pt-3 border-t border-green-200">
-                        <div className="text-xs font-semibold text-green-700 mb-1">AI Summary:</div>
-                        <p className="text-green-800">{verification.aiSummary}</p>
+                      <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-purple-600 mb-1 flex items-center gap-1">
+                          <Zap className="w-3 h-3" /> AI Summary
+                        </div>
+                        <p className="text-sm text-purple-900">{verification.aiSummary}</p>
                       </div>
                     )}
+
+                    {/* Metrics Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {verification.totalCommits > 0 && (
+                        <div className="bg-gray-50 rounded-xl p-3 text-center">
+                          <div className="text-2xl font-bold text-gray-800">{verification.totalCommits}</div>
+                          <div className="text-xs text-gray-500">Total Commits</div>
+                        </div>
+                      )}
+                      {verification.languages && Object.keys(verification.languages).length > 0 && (
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 mb-1">Languages</div>
+                          <div className="flex flex-wrap gap-1">
+                            {Object.keys(verification.languages).slice(0, 3).map(lang => (
+                              <span key={lang} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{lang}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recent Activity */}
+                    {verification.recentActivity && verification.recentActivity.length > 0 && (
+                      <div className="bg-gray-50 rounded-xl p-3">
+                        <div className="text-xs font-semibold text-gray-500 mb-2">Recent Activity</div>
+                        <div className="space-y-1.5">
+                          {verification.recentActivity.slice(0, 3).map((c: any) => (
+                            <div key={c.sha} className="flex items-start gap-2 text-xs">
+                              <code className="text-gray-400 font-mono flex-shrink-0">{c.sha}</code>
+                              <span className="text-gray-700 truncate">{c.message}</span>
+                              <span className="text-gray-400 flex-shrink-0">{new Date(c.date).toLocaleDateString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Verified badges */}
+                    <div className="flex gap-2 flex-wrap">
+                      {verification.commitVerified && <p className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full">✓ Commit verified</p>}
+                      {verification.prVerified && <p className="text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full">✓ PR verified: {verification.prData?.title}</p>}
+                    </div>
                   </div>
                 )}
 

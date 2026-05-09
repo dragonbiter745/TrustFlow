@@ -5,15 +5,14 @@ const Groq = require("groq-sdk");
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Verify GitHub commit and PR, then generate AI summary
+// Verify GitHub commit and PR, then generate AI summary + milestone verdict
 router.post("/verify", async (req, res) => {
-  const { commitHash, prLink, repoLink } = req.body;
+  const { commitHash, prLink, repoLink, milestoneDescription } = req.body;
 
   if (!repoLink) {
     return res.status(400).json({ error: "repoLink is required" });
   }
 
-  // Parse owner/repo from URL
   const repoMatch = repoLink.match(/github\.com\/([^\/]+)\/([^\/]+)/);
   if (!repoMatch) {
     return res.status(400).json({ error: "Invalid GitHub repo URL" });
@@ -33,11 +32,18 @@ router.post("/verify", async (req, res) => {
     commitData: null,
     prData: null,
     filesChanged: [],
+    // New metrics
+    totalCommits: 0,
+    recentActivity: [],
+    languages: {},
+    milestoneVerdict: null, // PASS / PARTIAL / FAIL
+    milestoneScore: 0,      // 0-100
+    milestoneReasoning: "",
     aiSummary: null,
   };
 
+  // 1. Verify repo exists + get metadata
   try {
-    // 1. Verify repo exists
     const repoRes = await axios.get(
       `https://api.github.com/repos/${owner}/${repoClean}`,
       { headers }
@@ -47,12 +53,41 @@ router.post("/verify", async (req, res) => {
       fullName: repoRes.data.full_name,
       description: repoRes.data.description,
       stars: repoRes.data.stargazers_count,
+      defaultBranch: repoRes.data.default_branch,
     };
   } catch (e) {
     return res.status(404).json({ error: "Repository not found or inaccessible" });
   }
 
-  // 2. Verify commit if provided
+  // 2. Fetch total commit count + recent activity timeline
+  try {
+    const commitsRes = await axios.get(
+      `https://api.github.com/repos/${owner}/${repoClean}/commits?per_page=100`,
+      { headers }
+    );
+    result.totalCommits = commitsRes.data.length;
+    result.recentActivity = commitsRes.data.slice(0, 5).map((c) => ({
+      sha: c.sha.substring(0, 7),
+      message: c.commit.message.split("\n")[0],
+      author: c.commit.author.name,
+      date: c.commit.author.date,
+    }));
+  } catch (e) {
+    // non-fatal
+  }
+
+  // 3. Fetch language breakdown
+  try {
+    const langRes = await axios.get(
+      `https://api.github.com/repos/${owner}/${repoClean}/languages`,
+      { headers }
+    );
+    result.languages = langRes.data;
+  } catch (e) {
+    // non-fatal
+  }
+
+  // 4. Verify specific commit if provided
   if (commitHash) {
     try {
       const commitRes = await axios.get(
@@ -80,7 +115,7 @@ router.post("/verify", async (req, res) => {
     }
   }
 
-  // 3. Verify PR if provided
+  // 5. Verify PR if provided
   if (prLink) {
     const prMatch = prLink.match(/github\.com\/[^\/]+\/[^\/]+\/pull\/(\d+)/);
     if (prMatch) {
@@ -108,59 +143,107 @@ router.post("/verify", async (req, res) => {
     }
   }
 
-  // 4. Fetch README for project context
+  // 6. Fetch README for project context
   let readmeText = "";
   try {
     const readmeRes = await axios.get(
       `https://api.github.com/repos/${owner}/${repoClean}/readme`,
       { headers }
     );
-    // GitHub returns README content as base64
     readmeText = Buffer.from(readmeRes.data.content, "base64")
       .toString("utf-8")
-      .substring(0, 1500); // cap to avoid huge prompts
+      .substring(0, 1500);
   } catch (e) {
-    // README not found or private — continue without it
+    // README not found — continue without it
   }
 
-  // 5. AI Summary using Groq (llama-3.3-70b-versatile)
+  // 7. Groq AI: Milestone Verdict + Summary
   try {
-    const contextParts = [];
+    const evidenceParts = [];
 
     if (readmeText) {
-      contextParts.push(`Project README (for context):\n${readmeText}`);
-      contextParts.push("---");
+      evidenceParts.push(`Project README:\n${readmeText}\n---`);
+    }
+
+    evidenceParts.push(`Repository: ${owner}/${repoClean}`);
+    evidenceParts.push(`Total commits in repo: ${result.totalCommits}`);
+
+    if (Object.keys(result.languages).length > 0) {
+      const langList = Object.entries(result.languages)
+        .map(([lang, bytes]) => `${lang} (${bytes} bytes)`)
+        .join(", ");
+      evidenceParts.push(`Languages used: ${langList}`);
+    }
+
+    if (result.recentActivity.length > 0) {
+      const activityList = result.recentActivity
+        .map((c) => `  - [${c.date.substring(0, 10)}] ${c.message} (by ${c.author})`)
+        .join("\n");
+      evidenceParts.push(`Recent commit activity:\n${activityList}`);
     }
 
     if (result.commitData) {
-      contextParts.push(`Commit: "${result.commitData.message}" by ${result.commitData.author} on ${result.commitData.date}`);
-      contextParts.push(`Changes: +${result.commitData.additions} -${result.commitData.deletions} lines`);
+      evidenceParts.push(`Submitted commit: "${result.commitData.message}" by ${result.commitData.author} on ${result.commitData.date}`);
+      evidenceParts.push(`Code changes: +${result.commitData.additions} lines added, -${result.commitData.deletions} lines removed`);
       if (result.filesChanged.length > 0) {
-        contextParts.push(`Files changed: ${result.filesChanged.map((f) => f.filename).join(", ")}`);
+        evidenceParts.push(`Files changed: ${result.filesChanged.map((f) => f.filename).join(", ")}`);
       }
     }
+
     if (result.prData) {
-      contextParts.push(`PR: "${result.prData.title}" - ${result.prData.merged ? "MERGED" : result.prData.state}`);
-      contextParts.push(`PR stats: +${result.prData.additions} -${result.prData.deletions} across ${result.prData.changedFiles} files`);
+      evidenceParts.push(`Pull Request: "${result.prData.title}" - ${result.prData.merged ? "MERGED ✓" : result.prData.state}`);
+      evidenceParts.push(`PR scope: +${result.prData.additions} -${result.prData.deletions} across ${result.prData.changedFiles} files`);
     }
 
-    const prompt = contextParts.length > 0
-      ? `You are reviewing a freelance work submission on TrustFlow, a blockchain escrow platform.\n\nSummarize what the freelancer accomplished in 1-2 concise, specific sentences. Reference the project context from the README if available. Be professional and technical.\n\n${contextParts.join("\n")}`
-      : `Generate a brief professional summary that GitHub work was submitted for repo ${owner}/${repoClean}. Keep it 1 sentence.`;
+    const milestone = milestoneDescription || "Complete the assigned work as described";
+
+    const verdictPrompt = `You are an impartial technical auditor for TrustFlow, a blockchain escrow platform for freelancers.
+
+MILESTONE REQUIREMENT (what the client asked for):
+"${milestone}"
+
+EVIDENCE OF WORK (what the freelancer actually did):
+${evidenceParts.join("\n")}
+
+Your job:
+1. Evaluate whether the evidence satisfies the milestone requirement.
+2. Give a VERDICT: PASS, PARTIAL, or FAIL
+3. Give a SCORE from 0-100 representing how well the milestone was met.
+4. Write a 2-3 sentence SUMMARY of what was accomplished.
+5. Write 1 sentence of REASONING for your verdict.
+
+Respond in this EXACT JSON format (no markdown, no extra text):
+{"verdict":"PASS","score":85,"summary":"The freelancer delivered...","reasoning":"The milestone required X and the evidence shows Y..."}`;
 
     const aiRes = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      max_tokens: 200,
-      messages: [{ role: "user", content: prompt }],
+      max_tokens: 350,
+      temperature: 0.3,
+      messages: [{ role: "user", content: verdictPrompt }],
     });
-    result.aiSummary = aiRes.choices[0].message.content.trim();
+
+    const raw = aiRes.choices[0].message.content.trim();
+    // Extract JSON from response
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      result.milestoneVerdict = parsed.verdict || "PARTIAL";
+      result.milestoneScore = parsed.score || 50;
+      result.aiSummary = parsed.summary || raw;
+      result.milestoneReasoning = parsed.reasoning || "";
+    } else {
+      result.aiSummary = raw;
+      result.milestoneVerdict = "PARTIAL";
+      result.milestoneScore = 50;
+    }
   } catch (e) {
     result.aiSummary = "GitHub work submission verified successfully.";
+    result.milestoneVerdict = "PARTIAL";
+    result.milestoneScore = 50;
   }
 
   res.json({ success: true, verification: result });
 });
-
 
 // Get recent commits for a repo (for display)
 router.get("/commits", async (req, res) => {
