@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ethers } from "ethers";
-import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import { WalletProvider, useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/hooks/useWallet";
 import { CONTRACT_ADDRESS, ESCROW_ABI } from "@/lib/contract";
 import { saveEscrow, sendEscrowCreatedNotification } from "@/lib/api";
 import { Shield, ArrowRight, Loader2, CheckCircle, ExternalLink, AlertCircle } from "lucide-react";

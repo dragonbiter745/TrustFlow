@@ -1,8 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import { WalletProvider, useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/hooks/useWallet";
 import StatusBadge from "@/components/StatusBadge";
 import { CONTRACT_ADDRESS, ESCROW_ABI, STATUS_MAP } from "@/lib/contract";
 import { getEscrowsByWallet } from "@/lib/api";
