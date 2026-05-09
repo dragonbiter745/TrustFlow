@@ -16,6 +16,12 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
 interface OnChainEscrow {
   id: bigint; client: string; freelancer: string; amount: bigint;
   projectTitle: string; milestoneDescription: string; githubRepo: string;

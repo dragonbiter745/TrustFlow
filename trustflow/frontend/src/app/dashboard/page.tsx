@@ -9,6 +9,12 @@ import { getEscrowsByWallet } from "@/lib/api";
 import { Plus, Wallet, Loader2, Shield, TrendingUp, Clock, CheckCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
+
 interface EscrowSummary {
   id: number;
   projectTitle: string;
