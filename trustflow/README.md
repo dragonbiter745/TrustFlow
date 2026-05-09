@@ -233,7 +233,7 @@ POST   /api/notify/payment-released → WhatsApp: payment released
 | Web3 | ethers.js v6, MetaMask |
 | Backend | Node.js, Express |
 | Database | Supabase (PostgreSQL) |
-| AI | Anthropic Claude (work summaries) |
+| AI | Groq (llama-3.3-70b-versatile) |
 | GitHub | GitHub REST API v3 |
 | Notifications | Twilio WhatsApp Sandbox |
 
