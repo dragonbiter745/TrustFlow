@@ -63,9 +63,11 @@ function CreateEscrowForm() {
       const amountWei = ethers.parseEther(form.amountEth);
 
       // Polygon Amoy requires min 25 gwei gas tip — set 50 gwei to be safe
+      // Add manual gasLimit to prevent flaky estimateGas CALL_EXCEPTIONs
       const GAS_OVERRIDES = {
         maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
         maxFeePerGas: ethers.parseUnits("50", "gwei"),
+        gasLimit: 500000,
       };
 
       const tx = await contract.createEscrow(

@@ -80,6 +80,7 @@ function EscrowDetail() {
       const GAS = {
         maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
         maxFeePerGas: ethers.parseUnits("50", "gwei"),
+        gasLimit: 500000,
       };
       const tx = await contract.submitWork(BigInt(id), workProof, GAS);
       const receipt = await tx.wait();
@@ -114,6 +115,7 @@ function EscrowDetail() {
       const GAS = {
         maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
         maxFeePerGas: ethers.parseUnits("50", "gwei"),
+        gasLimit: 500000,
       };
       const tx = await contract.approveRelease(BigInt(id), GAS);
       const receipt = await tx.wait();
