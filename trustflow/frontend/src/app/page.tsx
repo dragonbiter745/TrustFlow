@@ -149,15 +149,13 @@ function Features() {
 
 export default function Home() {
   return (
-    <WalletProvider>
-      <div className="min-h-screen bg-white">
-        <HeroSection />
-        <HowItWorks />
-        <Features />
-        <footer className="py-8 text-center text-sm text-gray-400 border-t border-gray-100">
-          TrustFlow — Blockchain Escrow for Freelancers · Built on Polygon Amoy
-        </footer>
-      </div>
-    </WalletProvider>
+    <div className="min-h-screen bg-white">
+      <HeroSection />
+      <HowItWorks />
+      <Features />
+      <footer className="py-8 text-center text-sm text-gray-400 border-t border-gray-100">
+        TrustFlow — Blockchain Escrow for Freelancers · Built on Polygon Amoy
+      </footer>
+    </div>
   );
 }

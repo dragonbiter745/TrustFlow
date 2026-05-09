@@ -402,10 +402,8 @@ function EscrowDetail() {
 
 export default function EscrowPage() {
   return (
-    <WalletProvider>
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        <EscrowDetail />
-      </div>
-    </WalletProvider>
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <EscrowDetail />
+    </div>
   );
 }

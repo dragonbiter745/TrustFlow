@@ -270,16 +270,14 @@ function CreateEscrowForm() {
 
 export default function CreateEscrowPage() {
   return (
-    <WalletProvider>
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Escrow</h1>
-          <p className="text-gray-500">Lock funds on-chain. Release when work is verified.</p>
-        </div>
-        <div className="card p-8">
-          <CreateEscrowForm />
-        </div>
+    <div className="max-w-3xl mx-auto px-4 py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Escrow</h1>
+        <p className="text-gray-500">Lock funds on-chain. Release when work is verified.</p>
       </div>
-    </WalletProvider>
+      <div className="card p-8">
+        <CreateEscrowForm />
+      </div>
+    </div>
   );
 }

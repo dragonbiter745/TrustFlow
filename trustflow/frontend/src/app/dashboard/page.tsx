@@ -222,10 +222,8 @@ function Dashboard() {
 
 export default function DashboardPage() {
   return (
-    <WalletProvider>
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <Dashboard />
-      </div>
-    </WalletProvider>
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      <Dashboard />
+    </div>
   );
 }
