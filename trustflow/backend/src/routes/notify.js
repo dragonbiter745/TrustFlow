@@ -12,7 +12,8 @@ const DEFAULT_CLIENT_PHONE = process.env.CLIENT_PHONE || "";
 const DEFAULT_FREELANCER_PHONE = process.env.FREELANCER_PHONE || "";
 
 async function sendWhatsApp(to, message, supabase, escrowId, type) {
-  const toFormatted = `whatsapp:${to}`;
+  const cleanTo = to.replace(/\s+/g, "");
+  const toFormatted = `whatsapp:${cleanTo}`;
   let sid = null;
   let deliveryStatus = "sent";
 
