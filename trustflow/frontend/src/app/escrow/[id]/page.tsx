@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import Navbar from "@/components/Navbar";
+import { WalletProvider, useWallet } from "@/hooks/useWallet";
 import StatusBadge from "@/components/StatusBadge";
 import { CONTRACT_ADDRESS, ESCROW_ABI, STATUS_MAP } from "@/lib/contract";
 import {
@@ -156,7 +156,8 @@ function EscrowDetail() {
     </div>
   );
 
-  const statusName = STATUS_MAP[escrow.status] || "FUNDED";
+  const statusNum = Number(escrow.status);
+  const statusName = STATUS_MAP[statusNum] || "FUNDED";
   const isClient = address?.toLowerCase() === escrow.client.toLowerCase();
   const isFreelancer = address?.toLowerCase() === escrow.freelancer.toLowerCase();
   const amountEth = ethers.formatEther(escrow.amount);
@@ -251,7 +252,7 @@ function EscrowDetail() {
           )}
 
           {/* Submit work form (freelancer, status FUNDED) */}
-          {isFreelancer && escrow.status === 0 && (
+          {isFreelancer && statusNum === 0 && (
             <div className="card p-6">
               <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <GitBranch className="w-4 h-4 text-brand-500" /> Submit Work
@@ -304,7 +305,7 @@ function EscrowDetail() {
           )}
 
           {/* Client actions */}
-          {isClient && (escrow.status === 0 || escrow.status === 1) && (
+          {isClient && (statusNum === 0 || statusNum === 1) && (
             <div className="card p-6">
               <h2 className="font-semibold text-gray-900 mb-4">Actions</h2>
               <div className="flex gap-3 flex-wrap">
@@ -321,7 +322,7 @@ function EscrowDetail() {
           )}
 
           {/* Freelancer: dispute option */}
-          {isFreelancer && (escrow.status === 0 || escrow.status === 1) && (
+          {isFreelancer && (statusNum === 0 || statusNum === 1) && (
             <div className="card p-4">
               <button onClick={handleRaiseDispute} disabled={txLoading} className="btn-secondary text-red-600 text-sm">
                 <AlertTriangle className="w-4 h-4" /> Raise Dispute
@@ -402,11 +403,8 @@ function EscrowDetail() {
 export default function EscrowPage() {
   return (
     <WalletProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-5xl mx-auto px-4 py-10">
-          <EscrowDetail />
-        </div>
+      <div className="max-w-5xl mx-auto px-4 py-10">
+        <EscrowDetail />
       </div>
     </WalletProvider>
   );

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import Navbar from "@/components/Navbar";
+import { WalletProvider, useWallet } from "@/hooks/useWallet";
 import StatusBadge from "@/components/StatusBadge";
 import { CONTRACT_ADDRESS, ESCROW_ABI, STATUS_MAP } from "@/lib/contract";
 import { getEscrowsByWallet } from "@/lib/api";
@@ -25,6 +25,7 @@ function Dashboard() {
   const [escrows, setEscrows] = useState<EscrowSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [source, setSource] = useState<"chain" | "db" | null>(null);
+  const [filter, setFilter] = useState<"all" | "client" | "freelancer">("all");
 
   useEffect(() => {
     if (address) loadEscrows();
@@ -107,6 +108,8 @@ function Dashboard() {
     totalValue: escrows.reduce((sum, e) => sum + parseFloat(e.amount || "0"), 0),
   };
 
+  const filteredEscrows = escrows.filter(e => filter === "all" || e.role === filter);
+
   return (
     <div>
       {/* Header */}
@@ -138,6 +141,27 @@ function Dashboard() {
         ))}
       </div>
 
+      {/* Filter Tabs */}
+      <div className="flex border-b border-gray-200 mb-8">
+        {[
+          { id: "all", label: "All Projects" },
+          { id: "client", label: "I'm a Client" },
+          { id: "freelancer", label: "I'm a Freelancer" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setFilter(tab.id as any)}
+            className={`px-6 py-3 text-sm font-medium transition-all border-b-2 ${
+              filter === tab.id 
+                ? "border-brand-500 text-brand-600" 
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Escrow list */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -161,7 +185,7 @@ function Dashboard() {
               Showing data from database. Connect to Polygon Amoy for live chain data.
             </p>
           )}
-          {escrows.map((e) => (
+          {filteredEscrows.map((e) => (
             <Link
               key={e.id}
               href={`/escrow/${e.id}`}
@@ -199,11 +223,8 @@ function Dashboard() {
 export default function DashboardPage() {
   return (
     <WalletProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-10">
-          <Dashboard />
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <Dashboard />
       </div>
     </WalletProvider>
   );

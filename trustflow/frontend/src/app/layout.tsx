@@ -7,10 +7,17 @@ export const metadata: Metadata = {
   icons: { icon: "/favicon.ico" },
 };
 
+import Sidebar from "@/components/Sidebar";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-gray-50 text-gray-900 flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 ml-64 min-h-screen">
+          {children}
+        </main>
+      </body>
     </html>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { Shield, GitBranch, Zap, Lock, CheckCircle, ArrowRight, Globe } from "lucide-react";
 
@@ -79,7 +78,7 @@ function HowItWorks() {
     {
       icon: Zap,
       title: "AI summarizes work",
-      desc: "Claude AI analyzes the GitHub activity and generates a concise proof-of-work summary for the client.",
+      desc: "Groq AI analyzes the GitHub activity and generates a concise proof-of-work summary for the client.",
       color: "bg-purple-50 text-purple-600",
     },
     {
@@ -120,7 +119,7 @@ function Features() {
     { icon: Shield, title: "Non-custodial escrow", desc: "Funds go directly on-chain. TrustFlow never holds your money." },
     { icon: GitBranch, title: "GitHub as proof-of-work", desc: "Commit hashes and PRs are verified via GitHub API in real time." },
     { icon: Globe, title: "Polygon network", desc: "Fast, cheap transactions on Polygon Amoy with MetaMask." },
-    { icon: Zap, title: "AI work summaries", desc: "Claude AI turns GitHub activity into readable work summaries." },
+    { icon: Zap, title: "AI work summaries", desc: "Groq AI turns GitHub activity into readable work summaries." },
   ];
 
   return (
@@ -152,7 +151,6 @@ export default function Home() {
   return (
     <WalletProvider>
       <div className="min-h-screen bg-white">
-        <Navbar />
         <HeroSection />
         <HowItWorks />
         <Features />

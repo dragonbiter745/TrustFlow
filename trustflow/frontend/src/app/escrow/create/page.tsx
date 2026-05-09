@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { WalletProvider, useWallet } from "@/hooks/useWallet";
-import Navbar from "@/components/Navbar";
+import { WalletProvider, useWallet } from "@/hooks/useWallet";
 import { CONTRACT_ADDRESS, ESCROW_ABI } from "@/lib/contract";
 import { saveEscrow, sendEscrowCreatedNotification } from "@/lib/api";
 import { Shield, ArrowRight, Loader2, CheckCircle, ExternalLink, AlertCircle } from "lucide-react";
@@ -271,16 +271,13 @@ function CreateEscrowForm() {
 export default function CreateEscrowPage() {
   return (
     <WalletProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Escrow</h1>
-            <p className="text-gray-500">Lock funds on-chain. Release when work is verified.</p>
-          </div>
-          <div className="card p-8">
-            <CreateEscrowForm />
-          </div>
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Escrow</h1>
+          <p className="text-gray-500">Lock funds on-chain. Release when work is verified.</p>
+        </div>
+        <div className="card p-8">
+          <CreateEscrowForm />
         </div>
       </div>
     </WalletProvider>
