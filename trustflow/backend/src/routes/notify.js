@@ -8,6 +8,8 @@ const client = twilio(
 );
 
 const WHATSAPP_FROM = `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`;
+const DEFAULT_CLIENT_PHONE = process.env.CLIENT_PHONE || "";
+const DEFAULT_FREELANCER_PHONE = process.env.FREELANCER_PHONE || "";
 
 async function sendWhatsApp(to, message, supabase, escrowId, type) {
   const toFormatted = `whatsapp:${to}`;
@@ -44,7 +46,9 @@ async function sendWhatsApp(to, message, supabase, escrowId, type) {
 // Send escrow created notification
 router.post("/escrow-created", async (req, res) => {
   const supabase = req.app.locals.supabase;
-  const { escrowId, projectTitle, amountEth, clientPhone, freelancerPhone } = req.body;
+  const { escrowId, projectTitle, amountEth } = req.body;
+  const clientPhone = req.body.clientPhone || DEFAULT_CLIENT_PHONE;
+  const freelancerPhone = req.body.freelancerPhone || DEFAULT_FREELANCER_PHONE;
 
   const results = [];
 
@@ -72,7 +76,9 @@ router.post("/escrow-created", async (req, res) => {
 // Send work submitted notification
 router.post("/work-submitted", async (req, res) => {
   const supabase = req.app.locals.supabase;
-  const { escrowId, projectTitle, aiSummary, clientPhone, freelancerPhone } = req.body;
+  const { escrowId, projectTitle, aiSummary } = req.body;
+  const clientPhone = req.body.clientPhone || DEFAULT_CLIENT_PHONE;
+  const freelancerPhone = req.body.freelancerPhone || DEFAULT_FREELANCER_PHONE;
 
   const results = [];
 
@@ -100,7 +106,9 @@ router.post("/work-submitted", async (req, res) => {
 // Send payment released notification
 router.post("/payment-released", async (req, res) => {
   const supabase = req.app.locals.supabase;
-  const { escrowId, projectTitle, amountEth, clientPhone, freelancerPhone, txHash } = req.body;
+  const { escrowId, projectTitle, amountEth, txHash } = req.body;
+  const clientPhone = req.body.clientPhone || DEFAULT_CLIENT_PHONE;
+  const freelancerPhone = req.body.freelancerPhone || DEFAULT_FREELANCER_PHONE;
 
   const results = [];
 
