@@ -16,12 +16,6 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
-
 interface OnChainEscrow {
   id: bigint; client: string; freelancer: string; amount: bigint;
   projectTitle: string; milestoneDescription: string; githubRepo: string;
@@ -50,7 +44,7 @@ function EscrowDetail() {
   }, [id, signer]);
 
   const loadEscrow = async () => {
-    if (!signer && !window.ethereum) { setLoading(false); return; }
+    if (!signer && !(window as any).ethereum) { setLoading(false); return; }
     try {
       const provider = signer
         ? signer.provider
