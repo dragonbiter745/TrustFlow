@@ -77,7 +77,11 @@ function EscrowDetail() {
     try {
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
       const workProof = JSON.stringify({ commitHash, prLink, repoLink, aiSummary: verification?.aiSummary });
-      const tx = await contract.submitWork(BigInt(id), workProof);
+      const GAS = {
+        maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
+        maxFeePerGas: ethers.parseUnits("50", "gwei"),
+      };
+      const tx = await contract.submitWork(BigInt(id), workProof, GAS);
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
 
@@ -107,7 +111,11 @@ function EscrowDetail() {
     setError("");
     try {
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ESCROW_ABI, signer);
-      const tx = await contract.approveRelease(BigInt(id));
+      const GAS = {
+        maxPriorityFeePerGas: ethers.parseUnits("50", "gwei"),
+        maxFeePerGas: ethers.parseUnits("50", "gwei"),
+      };
+      const tx = await contract.approveRelease(BigInt(id), GAS);
       const receipt = await tx.wait();
       setTxHash(receipt.hash);
 
