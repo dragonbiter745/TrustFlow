@@ -1,0 +1,41 @@
+# ===========================
+# Environment Variables — NEVER commit real credentials
+# ===========================
+.env
+.env.local
+.env.*.local
+
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+**/node_modules/
+
+# ===========================
+# Next.js build output
+# ===========================
+.next/
+out/
+build/
+
+# ===========================
+# Logs
+# ===========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# ===========================
+# OS / Editor
+# ===========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ===========================
+# Solana / Anchor (if added later)
+# ===========================
+target/
+.anchor/
